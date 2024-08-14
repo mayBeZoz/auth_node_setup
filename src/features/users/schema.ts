@@ -22,15 +22,14 @@ export const createUserSchema = z.object({
         email:z.string({required_error:"User first name is required."})
         .email('Email is not valid.'),
     })
-    
-})
-.strict()
-.refine(data => data.body.password === data.body.confirmPassword, {
-    message: 'Passwords must match',
-    path: ['confirmPassword'], 
-    
-})
+    .strict()    
+    .refine(data => data.password === data.confirmPassword, {
+        message: 'Passwords must match',
+        path: ['confirmPassword'], 
+        
+    })
 
+})
 
 export type TCreateUserPayload = z.infer<typeof createUserSchema>['body']
 
