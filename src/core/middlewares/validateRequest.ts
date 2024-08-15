@@ -1,6 +1,6 @@
 import { AnyZodObject } from "zod";
 import { Request, Response, NextFunction } from "express"
-import { ResponseStatus } from "./constants";
+import { ResponseStatus } from "../utils/constants";
 
 export default function (schema:AnyZodObject) {
     return (req:Request,res:Response,next:NextFunction) => {

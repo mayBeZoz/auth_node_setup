@@ -31,5 +31,41 @@ export const createUserSchema = z.object({
 
 })
 
+
+export const submitUserAccountValidationOTP = z.object({
+    body:z.object({
+        accountVerificationOTP:z.string({
+            required_error:"account verification code is required"
+        }).length(6,'account verification code must be 6 numbers')
+    }).strict(),
+    params:z.object({
+        id:z.string()
+    })
+})
+
+
+export const userLoginSchema = z.object({
+    body:z.object({
+        email:z.string({
+            required_error:"email is required"
+        }).email('email is not valid'),
+        password:z.string({
+            required_error:"password is required"
+        })
+    })
+}) 
+
+
+
 export type TCreateUserPayload = z.infer<typeof createUserSchema>['body']
+export type TAccountVerificationPayload = z.infer<typeof submitUserAccountValidationOTP>['body']
+export type TAccountVerificationParams = z.infer<typeof submitUserAccountValidationOTP>['params']
+export type TUserLoginPayload = z.infer<typeof userLoginSchema>['body']
+
+export type TUserTokenPayload = {
+    _id:string,
+    email:string,
+    verified:boolean,
+    role:'user'
+}
 

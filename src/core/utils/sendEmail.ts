@@ -1,11 +1,11 @@
 import nodemailer, { SendMailOptions } from "nodemailer";
 
-async function createTestCreds() {
-    const creds = await nodemailer.createTestAccount();
-    console.log({ creds });
-}
+// async function createTestCreds() {
+//     const creds = await nodemailer.createTestAccount();
+//     console.log({ creds });
+// }
 
-createTestCreds();
+// createTestCreds();
 
 
 const transporter = nodemailer.createTransport({
@@ -20,8 +20,10 @@ const transporter = nodemailer.createTransport({
 
   
 async function sendEmail(payload: SendMailOptions) {
-    await transporter.sendMail(payload)
+    const info = await transporter.sendMail(payload)
     console.log('\n********       Email sent successfully       ********\n')
+    console.log(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
+
 }
   
 export default sendEmail;

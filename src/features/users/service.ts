@@ -5,7 +5,7 @@ export const createUser = function (userData:Partial<IUser>) {
 }
 
 export const findUserByEmail = function (email:string) {
-    return UserModel.find({email})
+    return UserModel.findOne({email})
 }
 
 export const findUserById = function (id:string) {
