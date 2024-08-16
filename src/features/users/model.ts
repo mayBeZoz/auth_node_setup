@@ -8,7 +8,8 @@ export interface IUser extends Document {
     resetPasswordOTP:string|null,
     verifyUserOTP:string|null,
     verified:boolean,
-    setOTPExpiration: (otpField: 'verifyUserOTP' | 'resetPasswordOTP', expirationTime: number) => void,
+    setVerifyUserOTPExpiration: (expirationTime: number) => void,
+    setResetPasswordOTPExpiration: (expirationTime: number) => void,
     role:'user'
 }
 
@@ -51,15 +52,24 @@ const userSchema = new Schema<IUser>({
 })
 
 
-userSchema.methods.setOTPExpiration = function (
-    otpField: 'verifyUserOTP' | 'resetPasswordOTP',
-    expirationTime: number
-) {
+
+userSchema.methods.setVerifyUserOTPExpiration = function (expirationTime: number){
+
     setTimeout(() => {
-        this[otpField] = null;
+        this['verifyUserOTP'] = null;
         this.save();
     }, expirationTime);
 };
+
+
+userSchema.methods.setResetPasswordOTPExpiration = function (expirationTime: number){
+
+    setTimeout(() => {
+        this['resetPasswordOTP'] = null;
+        this.save();
+    }, expirationTime);
+};
+
 
 const UserModel = model<IUser>('User', userSchema);
 

@@ -32,7 +32,7 @@ export default class UserController {
             })
 
             const otpExpirationTime = 5 * 60 * 1000; // 5 minutes in milliseconds
-            user.setOTPExpiration('verifyUserOTP', otpExpirationTime);
+            user.setVerifyUserOTPExpiration(otpExpirationTime);
             
             await sendEmail(accountVerificationPayload(user))
 
@@ -71,7 +71,7 @@ export default class UserController {
             user.verifyUserOTP = generateOTP()
             await user.save()
             const otpExpirationTime = 5 * 60 * 1000; // 5 minutes in milliseconds
-            user.setOTPExpiration('verifyUserOTP', otpExpirationTime);
+            user.setVerifyUserOTPExpiration(otpExpirationTime);
             
             await sendEmail(accountVerificationPayload(user))
 
@@ -160,7 +160,7 @@ export default class UserController {
                 user.verifyUserOTP = generateOTP()
                 await user.save()
                 const otpExpirationTime = 5 * 60 * 1000; // 5 minutes in milliseconds
-                user.setOTPExpiration('verifyUserOTP', otpExpirationTime);
+                user.setVerifyUserOTPExpiration(otpExpirationTime);
                 
                 await sendEmail(accountVerificationPayload(user))
 
@@ -292,7 +292,7 @@ export default class UserController {
             user.resetPasswordOTP = generateOTP()
             await user.save()
             const otpExpirationTime = 5 * 60 * 1000; // 5 minutes in milliseconds
-            user.setOTPExpiration('resetPasswordOTP', otpExpirationTime);
+            user.setResetPasswordOTPExpiration(otpExpirationTime);
             
             await sendEmail(accountResetPasswordPayload(user))
 
