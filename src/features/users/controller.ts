@@ -1,12 +1,12 @@
 import { ResponseStatus } from "../../core/utils/constants";
 import controllerHandler from "../../core/utils/controllerHandler";
 import sendEmail from "../../core/utils/sendEmail";
-import { TAccountVerificationParams,TAccountVerificationPayload, TCreateUserPayload, TUserLoginPayload, TUserTokenPayload } from "./schema";
+import { TAccountVerificationParams,TAccountVerificationPayload, TCreateUserPayload, TResetPasswordParams, TResetPasswordPayload, TUserLoginPayload, TUserTokenPayload } from "./schema";
 import { createUser, findUserByEmail, findUserById } from "./service";
 import { Request } from "express";
 import bcrypt from "bcrypt"
 import generateOTP from "../../core/utils/generateOTP";
-import { accountVerificationPayload } from "./constants";
+import { accountResetPasswordPayload, accountVerificationPayload } from "./constants";
 import { sign, verify} from "jsonwebtoken"
 
 export default class UserController {
@@ -68,7 +68,8 @@ export default class UserController {
                     message:"user is already verified"
                 })
             }
-
+            user.verifyUserOTP = generateOTP()
+            await user.save()
             const otpExpirationTime = 5 * 60 * 1000; // 5 minutes in milliseconds
             user.setOTPExpiration('verifyUserOTP', otpExpirationTime);
             
@@ -156,6 +157,8 @@ export default class UserController {
             }
 
             if (!user.verified) {
+                user.verifyUserOTP = generateOTP()
+                await user.save()
                 const otpExpirationTime = 5 * 60 * 1000; // 5 minutes in milliseconds
                 user.setOTPExpiration('verifyUserOTP', otpExpirationTime);
                 
@@ -262,6 +265,93 @@ export default class UserController {
             }
 
             
+        }
+    )
+
+    static getResetPasswordOTP = controllerHandler<TResetPasswordParams,{},TResetPasswordPayload>(
+        async (req,res,next) => {
+            const userId = req.params.id
+            
+            const user = await findUserById(userId)
+
+            if (!user) {
+                return res.status(404).json({
+                    error:null,
+                    status:ResponseStatus.FAILED,
+                    data:null,
+                    message:"user not exists"
+                })
+            }else if (!user.verified) {
+                return res.status(401).json({
+                    error:null,
+                    status:ResponseStatus.FAILED,
+                    data:null,
+                    message:"user is not verified, please verify your account"
+                })
+            }
+            user.resetPasswordOTP = generateOTP()
+            await user.save()
+            const otpExpirationTime = 5 * 60 * 1000; // 5 minutes in milliseconds
+            user.setOTPExpiration('resetPasswordOTP', otpExpirationTime);
+            
+            await sendEmail(accountResetPasswordPayload(user))
+
+            
+            return res.status(404).json({
+                error:null,
+                status:ResponseStatus.SUCCESS,
+                data:null,
+                message:"password reset code is sent to your email"
+            })
+        
+        }
+    )
+
+
+    static submitResetPasswordOTP = controllerHandler<TResetPasswordParams,{},TResetPasswordPayload>(
+        async (req,res,next) => {
+            const { id: userId } = req.params;
+            const { resetPasswordOTP,newPassword } = req.body;
+
+            const user = await findUserById(userId);
+            if (!user) {
+                return res.status(404).json({
+                    error: null,
+                    status: ResponseStatus.FAILED,
+                    data: null,
+                    message: "User not exists",
+                });
+            } else if (!user.verified) {
+                return res.status(401).json({
+                    error:null,
+                    status:ResponseStatus.FAILED,
+                    data:null,
+                    message:"user is not verified, please verify your account"
+                })
+            }
+
+            if (user.resetPasswordOTP !== resetPasswordOTP) {
+                return res.status(400).json({
+                    error: null,
+                    status: ResponseStatus.FAILED,
+                    data: null,
+                    message: "password reset code is not valid",
+                });
+            }
+            const hashedPassword = await bcrypt.hash(newPassword,12)
+
+
+            user.password = hashedPassword;
+            await user.save();
+
+            const { _id, email, firstName, lastName, verified } = user.toObject();
+
+            return res.status(200).json({
+                error: null,
+                status: ResponseStatus.SUCCESS,
+                data: { _id, email, firstName, lastName, verified },
+                message: "your account password is changed successfully",
+            });
         }
     )
 }

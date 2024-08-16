@@ -13,11 +13,15 @@ export const createUserSchema = z.object({
         .min(3,'User Last name must be at least 3 characters.')
         .max(20,"User Last name must be less than 20 characters."),
 
-        password:z.string().regex(passwordRegex, {
+        password:z.string({
+            required_error:"password is required"
+        }).regex(passwordRegex, {
             message: 'Password must be at least 6 characters long and include at least one capital letter, one number and special character.',
         }),
 
-        confirmPassword:z.string(),
+        confirmPassword:z.string({
+            required_error:"confirm password field is required"
+        }),
 
         email:z.string({required_error:"User first name is required."})
         .email('Email is not valid.'),
@@ -44,6 +48,22 @@ export const submitUserAccountValidationOTP = z.object({
 })
 
 
+export const submitUserResetPasswordOTP = z.object({
+    body:z.object({
+        resetPasswordOTP:z.string({
+            required_error:"account verification code is required"
+        }).length(6,'account verification code must be 6 numbers'),
+        newPassword:z.string({
+            required_error:"password is required"
+        }).regex(passwordRegex, {
+            message: 'Password must be at least 6 characters long and include at least one capital letter, one number and special character.',
+        })
+    }).strict(),
+    params:z.object({
+        id:z.string()
+    })
+})
+
 export const userLoginSchema = z.object({
     body:z.object({
         email:z.string({
@@ -58,8 +78,13 @@ export const userLoginSchema = z.object({
 
 
 export type TCreateUserPayload = z.infer<typeof createUserSchema>['body']
+
 export type TAccountVerificationPayload = z.infer<typeof submitUserAccountValidationOTP>['body']
 export type TAccountVerificationParams = z.infer<typeof submitUserAccountValidationOTP>['params']
+
+export type TResetPasswordPayload = z.infer<typeof submitUserResetPasswordOTP>['body']
+export type TResetPasswordParams = z.infer<typeof submitUserResetPasswordOTP>['params']
+
 export type TUserLoginPayload = z.infer<typeof userLoginSchema>['body']
 
 export type TUserTokenPayload = {
