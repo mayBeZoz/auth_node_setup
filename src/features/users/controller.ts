@@ -1,12 +1,43 @@
 import { ResponseStatus } from "../../core/utils/constants";
 import controllerHandler from "../../core/utils/controllerHandler";
 import sendEmail from "../../core/utils/sendEmail";
-import { TAccountVerificationParams,TAccountVerificationPayload, TCreateUserPayload, TGetAllUsersQuery, TGetUserByIdParams, TResetPasswordParams, TResetPasswordPayload, TUserLoginPayload, TUserTokenPayload } from "./schema";
-import { createUser, findUserByEmail, findUserById, getUsers } from "./service";
-import bcrypt from "bcrypt"
 import generateOTP from "../../core/utils/generateOTP";
-import { getAccountVerificationEmailPayload, getResetPasswordEmailPayload } from "./constants";
+import bcrypt from "bcrypt"
 import { sign, verify} from "jsonwebtoken"
+
+import { 
+    TAccountVerificationParams,
+    TAccountVerificationPayload, 
+    TCreateUserPayload, 
+    TDeleteUserParams, 
+    TGetAllUsersQuery, 
+    TGetUserByIdParams, 
+    TResetPasswordParams, 
+    TResetPasswordPayload, 
+    TUpdateUserParams, 
+    TUpdateUserPayload, 
+    TUserLoginPayload, 
+    TUserTokenPayload 
+} from "./schema";
+
+import { 
+    createUser, 
+    deleteUserById, 
+    findUserByEmail, 
+    findUserById, 
+    getUsers, 
+    updateUserById 
+} from "./service";
+
+
+import { 
+    getAccountVerificationEmailPayload, 
+    getResetPasswordEmailPayload 
+} from "./constants";
+
+
+
+
 
 export default class UserController {
     static register = controllerHandler<{},{},TCreateUserPayload>(
@@ -393,7 +424,72 @@ export default class UserController {
         }
     )
 
+    static updateUserById = controllerHandler<TUpdateUserParams,{},TUpdateUserPayload>(
+        async (req,res,next) => {
+            const userId = req.params.id
+            const body = req.body
+            if (req.user?._id !== userId) {
+                return res.status(403).json({
+                    data:null,
+                    error:null,
+                    status:ResponseStatus.FAILED,
+                    message:'only account owner can modify account data'
+                })
+            }
 
+            const user = findUserById(userId)
 
+            if (!user) {
+                return res.status(404).json({
+                    data:null,
+                    error:null,
+                    status:ResponseStatus.FAILED,
+                    message:"user is not found"
+                })
+            }
+
+            const updatedUser = await updateUserById(body,userId)
+
+            return res.status(200).json({
+                data:updatedUser,
+                error:null,
+                status:ResponseStatus.SUCCESS,
+                message:"user updated successfully"
+            })
+        }
+    )
+
+    static deleteUserById = controllerHandler<TDeleteUserParams>(
+        async (req,res,next) => {
+            const id = req.params.id
+
+            if (req.user?._id !== id) {
+                return res.status(403).json({
+                    data:null,
+                    error:null,
+                    status:ResponseStatus.FAILED,
+                    message:'only account owner can modify account data'
+                })
+            }
+
+            const deletedUser = deleteUserById(id)
+
+            if (Boolean(deletedUser)) {
+                return res.status(200).json({
+                    data:null,
+                    error:null,
+                    status:ResponseStatus.SUCCESS,
+                    message:"success on deleting user's data"
+                })
+            }
+
+            return res.status(500).json({
+                data:null,
+                error:null,
+                status:ResponseStatus.FAILED,
+                message:"error on deleing user's data"
+            })
+        }
+    )
     
 }

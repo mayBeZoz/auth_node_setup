@@ -2,9 +2,7 @@ import { z } from "zod";
 
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
 
-const cookiesSchema = z.object({
-    user_token:z.string().optional()
-})
+
 
 export const createUserSchema = z.object({
 
@@ -36,7 +34,6 @@ export const createUserSchema = z.object({
         path: ['confirmPassword'], 
         
     }),
-    cookies:cookiesSchema
 
 })
 
@@ -52,7 +49,6 @@ export const submitUserAccountValidationOTP = z.object({
             required_error:"user id is required"
         })
     }),
-    cookies:cookiesSchema
 
 })
 
@@ -73,7 +69,6 @@ export const submitUserResetPasswordOTP = z.object({
             required_error:"user id is required"
         })
     }),
-    cookies:cookiesSchema
 
 })
 
@@ -86,7 +81,6 @@ export const userLoginSchema = z.object({
             required_error:"password is required"
         })
     }),
-    cookies:cookiesSchema
 
 }) 
 
@@ -96,7 +90,6 @@ export const getAllUsersSchema = z.object({
         page:z.string().optional(),
         search:z.string().optional()
     }).optional(),
-    cookies:cookiesSchema
 })
 
 export const getUserByIdSchema = z.object({
@@ -105,8 +98,32 @@ export const getUserByIdSchema = z.object({
             required_error:"user id is required"
         })
     }),
-    cookies:cookiesSchema
 }) 
+
+export const updateUserSchema = z.object({
+    body: z.object({
+        firstName:z.string()
+        .min(3,'User first name must be at least 3 characters.')
+        .max(20,"User first name must be less than 20 characters.")
+        .optional(),
+
+        lastName:z.string()
+        .min(3,'User Last name must be at least 3 characters.')
+        .max(20,"User Last name must be less than 20 characters.")
+        .optional(),
+    }).strict(),
+    params:z.object({
+        id:z.string({
+            required_error:"user id is required"
+        })
+    })
+})
+
+export const deleteUserSchema = z.object({
+    params:z.object({
+        id:z.string()
+    })
+})
 
 export type TCreateUserPayload = z.infer<typeof createUserSchema>['body']
 
@@ -122,8 +139,11 @@ export type TGetAllUsersQuery = z.infer<typeof getAllUsersSchema>['query']
 
 export type TGetUserByIdParams = z.infer<typeof getUserByIdSchema>['params']
 
+export type TUpdateUserPayload = z.infer<typeof updateUserSchema>['body']
+export type TUpdateUserParams = z.infer<typeof updateUserSchema>['params']
 
-export type TRequestCookies = z.infer<typeof cookiesSchema>
+export type TDeleteUserParams = z.infer<typeof deleteUserSchema>['params']
+
 export type TUserTokenPayload = {
     _id:string,
     email:string,

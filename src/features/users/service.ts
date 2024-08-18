@@ -43,3 +43,18 @@ export const getUsers = async function (page:number,limit:number,query:string):P
         curr_page:page
     }
 }
+
+
+
+export const updateUserById = function (payload:Partial<IUser>,userId:string) {
+    return UserModel.findOneAndUpdate(
+        {_id:userId},
+        {$set:payload},
+        {new:true}
+    ).select("-password -__v -verifyUserOTP -resetPasswordOTP")
+}
+
+
+export const deleteUserById = function (userId:string) {
+    return UserModel.findByIdAndDelete(userId).select("-password -__v -verifyUserOTP -resetPasswordOTP")
+}
