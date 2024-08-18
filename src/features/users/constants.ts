@@ -1,7 +1,7 @@
 import { SendMailOptions } from "nodemailer";
 import { IUser } from "./model";
 
-export const accountVerificationPayload = (user:IUser,modifiedPayload?:SendMailOptions) => {
+export const getAccountVerificationEmailPayload = (user:IUser,modifiedPayload?:SendMailOptions) => {
     return (
         {
             to: user.email,
@@ -14,7 +14,7 @@ export const accountVerificationPayload = (user:IUser,modifiedPayload?:SendMailO
 }
 
 
-export const accountResetPasswordPayload = (user:IUser,modifiedPayload?:SendMailOptions) => {
+export const getResetPasswordEmailPayload = (user:IUser,modifiedPayload?:SendMailOptions) => {
     return (
         {
             to: user.email,

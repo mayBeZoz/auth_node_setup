@@ -2,6 +2,10 @@ import { z } from "zod";
 
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
 
+const cookiesSchema = z.object({
+    user_token:z.string().optional()
+})
+
 export const createUserSchema = z.object({
 
     body:z.object({
@@ -31,7 +35,8 @@ export const createUserSchema = z.object({
         message: 'Passwords must match',
         path: ['confirmPassword'], 
         
-    })
+    }),
+    cookies:cookiesSchema
 
 })
 
@@ -43,8 +48,12 @@ export const submitUserAccountValidationOTP = z.object({
         }).length(6,'account verification code must be 6 numbers')
     }).strict(),
     params:z.object({
-        id:z.string()
-    })
+        id:z.string({
+            required_error:"user id is required"
+        })
+    }),
+    cookies:cookiesSchema
+
 })
 
 
@@ -60,8 +69,12 @@ export const submitUserResetPasswordOTP = z.object({
         })
     }).strict(),
     params:z.object({
-        id:z.string()
-    })
+        id:z.string({
+            required_error:"user id is required"
+        })
+    }),
+    cookies:cookiesSchema
+
 })
 
 export const userLoginSchema = z.object({
@@ -72,10 +85,28 @@ export const userLoginSchema = z.object({
         password:z.string({
             required_error:"password is required"
         })
-    })
+    }),
+    cookies:cookiesSchema
+
 }) 
 
+export const getAllUsersSchema = z.object({
+    query:z.object({
+        limit:z.string().optional(),
+        page:z.string().optional(),
+        search:z.string().optional()
+    }).optional(),
+    cookies:cookiesSchema
+})
 
+export const getUserByIdSchema = z.object({
+    params:z.object({
+        id:z.string({
+            required_error:"user id is required"
+        })
+    }),
+    cookies:cookiesSchema
+}) 
 
 export type TCreateUserPayload = z.infer<typeof createUserSchema>['body']
 
@@ -87,10 +118,15 @@ export type TResetPasswordParams = z.infer<typeof submitUserResetPasswordOTP>['p
 
 export type TUserLoginPayload = z.infer<typeof userLoginSchema>['body']
 
+export type TGetAllUsersQuery = z.infer<typeof getAllUsersSchema>['query']
+
+export type TGetUserByIdParams = z.infer<typeof getUserByIdSchema>['params']
+
+
+export type TRequestCookies = z.infer<typeof cookiesSchema>
 export type TUserTokenPayload = {
     _id:string,
     email:string,
-    verified:boolean,
     role:'user'
 }
 

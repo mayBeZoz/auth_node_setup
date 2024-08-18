@@ -1,12 +1,11 @@
 import { ResponseStatus } from "../../core/utils/constants";
 import controllerHandler from "../../core/utils/controllerHandler";
 import sendEmail from "../../core/utils/sendEmail";
-import { TAccountVerificationParams,TAccountVerificationPayload, TCreateUserPayload, TResetPasswordParams, TResetPasswordPayload, TUserLoginPayload, TUserTokenPayload } from "./schema";
-import { createUser, findUserByEmail, findUserById } from "./service";
-import { Request } from "express";
+import { TAccountVerificationParams,TAccountVerificationPayload, TCreateUserPayload, TGetAllUsersQuery, TGetUserByIdParams, TResetPasswordParams, TResetPasswordPayload, TUserLoginPayload, TUserTokenPayload } from "./schema";
+import { createUser, findUserByEmail, findUserById, getUsers } from "./service";
 import bcrypt from "bcrypt"
 import generateOTP from "../../core/utils/generateOTP";
-import { accountResetPasswordPayload, accountVerificationPayload } from "./constants";
+import { getAccountVerificationEmailPayload, getResetPasswordEmailPayload } from "./constants";
 import { sign, verify} from "jsonwebtoken"
 
 export default class UserController {
@@ -34,7 +33,7 @@ export default class UserController {
             const otpExpirationTime = 5 * 60 * 1000; // 5 minutes in milliseconds
             user.setVerifyUserOTPExpiration(otpExpirationTime);
             
-            await sendEmail(accountVerificationPayload(user))
+            await sendEmail(getAccountVerificationEmailPayload(user))
 
             const { _id, email:userEmail, firstName, lastName, verified } = user.toObject();
 
@@ -73,7 +72,7 @@ export default class UserController {
             const otpExpirationTime = 5 * 60 * 1000; // 5 minutes in milliseconds
             user.setVerifyUserOTPExpiration(otpExpirationTime);
             
-            await sendEmail(accountVerificationPayload(user))
+            await sendEmail(getAccountVerificationEmailPayload(user))
 
             
             return res.status(404).json({
@@ -85,8 +84,8 @@ export default class UserController {
         }
     )
 
-    static submitAccountVerificationOTP = controllerHandler(
-        async (req:Request<TAccountVerificationParams, {}, TAccountVerificationPayload>, res, next) => {
+    static submitAccountVerificationOTP = controllerHandler<TAccountVerificationParams, {}, TAccountVerificationPayload>(
+        async (req, res, next) => {
             const { id: userId } = req.params;
             const { accountVerificationOTP } = req.body;
 
@@ -130,8 +129,8 @@ export default class UserController {
         }
     );
 
-    static login = controllerHandler(
-        async (req:Request<{},{},TUserLoginPayload>,res,next) => {
+    static login = controllerHandler<{},{},TUserLoginPayload>(
+        async (req,res,next) => {
             const {email,password} = req.body
 
             const user = await findUserByEmail(email)
@@ -162,7 +161,7 @@ export default class UserController {
                 const otpExpirationTime = 5 * 60 * 1000; // 5 minutes in milliseconds
                 user.setVerifyUserOTPExpiration(otpExpirationTime);
                 
-                await sendEmail(accountVerificationPayload(user))
+                await sendEmail(getAccountVerificationEmailPayload(user))
 
                 const { _id, email, firstName, lastName, verified } = user.toObject()
                 return res.status(403).json({
@@ -178,8 +177,7 @@ export default class UserController {
             const tokenPayload : TUserTokenPayload = {
                 _id:user._id,
                 email:user.email,
-                verified:user.verified,
-                role:user.role
+                role:'user'
             }
 
             const refreshToken = sign(tokenPayload,refreshSecret,{
@@ -236,8 +234,7 @@ export default class UserController {
                     const tokenPayload : TUserTokenPayload = {
                         _id:user._id,
                         email:user.email,
-                        verified:user.verified,
-                        role:user.role
+                        role:'user'
                     }
 
                     const accessSecret = process.env.ACCESS_TOKEN_JWT_SECRET as string
@@ -294,7 +291,7 @@ export default class UserController {
             const otpExpirationTime = 5 * 60 * 1000; // 5 minutes in milliseconds
             user.setResetPasswordOTPExpiration(otpExpirationTime);
             
-            await sendEmail(accountResetPasswordPayload(user))
+            await sendEmail(getResetPasswordEmailPayload(user))
 
             
             return res.status(404).json({
@@ -354,4 +351,49 @@ export default class UserController {
             });
         }
     )
+
+    static getAllUsers = controllerHandler<{},{},{},TGetAllUsersQuery>(
+        async (req,res,next) => {
+            const { search = '', page = '1', limit = '10' } = req.query || {}
+            const parsedPages = parseInt(page)
+            const parsedLimit = parseInt(limit)
+            
+            const usersData = await getUsers(parsedPages,parsedLimit,search)
+            
+            return res.status(200).json({
+                data:usersData,
+                message:'success getting all users',
+                status:ResponseStatus.SUCCESS,
+                error:null
+            })
+        }
+    )
+
+    static getUserById = controllerHandler<TGetUserByIdParams>(
+        async (req,res,next) => {
+            const userId = req.params.id
+
+            const user = await findUserById(userId,'-resetPasswordOTP -verifyUserOTP -password -__v')
+
+            if (!user) {
+                return res.status(404).json({
+                    data:null,
+                    error:null,
+                    status:ResponseStatus.FAILED,
+                    message:"user id not found"
+                })
+            }
+
+            return res.status(200).json({
+                data:user,
+                error:null,
+                status:ResponseStatus.SUCCESS,
+                message:"got the user successfully"
+            })
+        }
+    )
+
+
+
+    
 }

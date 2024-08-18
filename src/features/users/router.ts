@@ -1,6 +1,6 @@
 import express from 'express';
 import validateRequest from '../../core/middlewares/validateRequest';
-import { createUserSchema, submitUserAccountValidationOTP, submitUserResetPasswordOTP, userLoginSchema } from './schema';
+import { createUserSchema, getAllUsersSchema, getUserByIdSchema, submitUserAccountValidationOTP, submitUserResetPasswordOTP, userLoginSchema } from './schema';
 import UserController from './controller';
 
 const router = express.Router();
@@ -43,6 +43,19 @@ router.post(
     '/submit-reset-password/:id',
     validateRequest(submitUserResetPasswordOTP),
     UserController.submitResetPasswordOTP
+)
+
+router.get(
+    "/",
+    validateRequest(getAllUsersSchema),
+    UserController.getAllUsers
+)
+
+
+router.get(
+    "/:id",
+    validateRequest(getUserByIdSchema),
+    UserController.getUserById
 )
 
 export {router as UsersRouter}
