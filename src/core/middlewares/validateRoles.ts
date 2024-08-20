@@ -31,7 +31,7 @@ export const validateRoles = (roles:UserRoles[]) => controllerHandler(
         }
         
         const user = await findUserById(data?._id as string)
-        
+
         if (user && user.role === data?.role) {
             next()
         }else {
@@ -39,7 +39,7 @@ export const validateRoles = (roles:UserRoles[]) => controllerHandler(
                 data:null,
                 error:null,
                 status:ResponseStatus.FAILED,
-                message:'user not found'
+                message:'user is not authorized'
             })
         }
         

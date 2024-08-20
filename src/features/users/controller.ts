@@ -8,6 +8,8 @@ import { sign, verify} from "jsonwebtoken"
 import { 
     TAccountVerificationParams,
     TAccountVerificationPayload, 
+    TChangeUserRoleParams, 
+    TChangeUserRolePayload, 
     TCreateUserPayload, 
     TDeleteUserParams, 
     TGetAllUsersQuery, 
@@ -208,7 +210,7 @@ export default class UserController {
             const tokenPayload : TUserTokenPayload = {
                 _id:user._id,
                 email:user.email,
-                role:UserRoles.USER
+                role:user.role
             }
 
             const refreshToken = sign(tokenPayload,refreshSecret,{
@@ -265,7 +267,7 @@ export default class UserController {
                     const tokenPayload : TUserTokenPayload = {
                         _id:user._id,
                         email:user.email,
-                        role:UserRoles.USER
+                        role:user.role
                     }
 
                     const accessSecret = process.env.ACCESS_TOKEN_JWT_SECRET as string
@@ -495,4 +497,42 @@ export default class UserController {
         }
     )
     
+
+    static changeRole = controllerHandler<TChangeUserRoleParams,{},TChangeUserRolePayload>(
+        async (req,res,next) => {
+            const id = req.params.id
+
+            const user = await findUserById(id)
+
+            if (!user) {
+                return res.status(404).json({
+                    data:null,
+                    error:null,
+                    status:ResponseStatus.FAILED,
+                    message:"user is not found"
+                })
+            }
+
+            switch (user.role) {
+                case UserRoles.ADMIN:
+                case UserRoles.USER:
+                    user.role = req.body.role
+                    await user.save()
+                    return res.status(200).json({
+                        data:null,
+                        error:null,
+                        status:ResponseStatus.SUCCESS,
+                        message:"role is changed successfully"
+                    })
+                case UserRoles.SUPER_ADMIN:
+                    return res.status(403).json({
+                        data:null,
+                        error:null,
+                        status:ResponseStatus.FAILED,
+                        message:"cannot modify super admins roles"
+                    })
+            }
+         
+        }
+    )
 }

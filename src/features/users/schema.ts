@@ -120,9 +120,24 @@ export const updateUserSchema = z.object({
     })
 })
 
+export const changeUserRoleSchema = z.object({
+    body:z.object({
+        role:z.enum([UserRoles.ADMIN,UserRoles.SUPER_ADMIN,UserRoles.USER],{
+            required_error:"user role is required"
+        })
+    }),
+    params:z.object({
+        id:z.string({
+            required_error:"user id is required"
+        })
+    })
+})
+
 export const deleteUserSchema = z.object({
     params:z.object({
-        id:z.string()
+        id:z.string({
+            required_error:"user id is required"
+        })
     })
 })
 
@@ -144,6 +159,9 @@ export type TUpdateUserPayload = z.infer<typeof updateUserSchema>['body']
 export type TUpdateUserParams = z.infer<typeof updateUserSchema>['params']
 
 export type TDeleteUserParams = z.infer<typeof deleteUserSchema>['params']
+
+export type TChangeUserRolePayload = z.infer<typeof changeUserRoleSchema>['body']
+export type TChangeUserRoleParams = z.infer<typeof changeUserRoleSchema>['params']
 
 export type TUserTokenPayload = {
     _id:string,

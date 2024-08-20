@@ -1,6 +1,6 @@
 import express from 'express';
 import validateRequest from '../../core/middlewares/validateRequest';
-import { createUserSchema, deleteUserSchema, getAllUsersSchema, getUserByIdSchema, submitUserAccountValidationOTP, submitUserResetPasswordOTP, updateUserSchema, userLoginSchema } from './schema';
+import { changeUserRoleSchema, createUserSchema, deleteUserSchema, getAllUsersSchema, getUserByIdSchema, submitUserAccountValidationOTP, submitUserResetPasswordOTP, updateUserSchema, userLoginSchema } from './schema';
 import UserController from './controller';
 import { validateRoles } from '../../core/middlewares/validateRoles';
 import { UserRoles } from '../../core/utils/constants';
@@ -72,6 +72,13 @@ router.delete(
     validateRoles([UserRoles.USER,UserRoles.ADMIN,UserRoles.SUPER_ADMIN]),
     validateRequest(deleteUserSchema),
     UserController.deleteUserById
+)
+
+router.post(
+    "/change-role/:id",
+    validateRoles([UserRoles.SUPER_ADMIN]),
+    validateRequest(changeUserRoleSchema),
+    UserController.changeRole
 )
 
 export {router as UsersRouter}
