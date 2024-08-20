@@ -1,7 +1,9 @@
 import express from 'express';
 import validateRequest from '../../core/middlewares/validateRequest';
-import { createUserSchema, getAllUsersSchema, getUserByIdSchema, submitUserAccountValidationOTP, submitUserResetPasswordOTP, userLoginSchema } from './schema';
+import { createUserSchema, deleteUserSchema, getAllUsersSchema, getUserByIdSchema, submitUserAccountValidationOTP, submitUserResetPasswordOTP, updateUserSchema, userLoginSchema } from './schema';
 import UserController from './controller';
+import { validateRoles } from '../../core/middlewares/validateRoles';
+import { UserRoles } from '../../core/utils/constants';
 
 const router = express.Router();
 
@@ -56,6 +58,20 @@ router.get(
     "/:id",
     validateRequest(getUserByIdSchema),
     UserController.getUserById
+)
+
+router.patch(
+    "/:id",
+    validateRoles([UserRoles.USER,UserRoles.ADMIN,UserRoles.SUPER_ADMIN]),
+    validateRequest(updateUserSchema),
+    UserController.updateUserById
+)
+
+router.delete(
+    "/:id",
+    validateRoles([UserRoles.USER,UserRoles.ADMIN,UserRoles.SUPER_ADMIN]),
+    validateRequest(deleteUserSchema),
+    UserController.deleteUserById
 )
 
 export {router as UsersRouter}

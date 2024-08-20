@@ -15,7 +15,7 @@ app.use(cookieParser())
 app.use(router)
 
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-
+    console.log(err)
     res.status(500).json({
         message: "Internal Server Error",
         error: err,

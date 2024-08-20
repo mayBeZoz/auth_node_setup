@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { UserRoles } from "../../core/utils/constants";
 
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
 
@@ -108,8 +109,8 @@ export const updateUserSchema = z.object({
         .optional(),
 
         lastName:z.string()
-        .min(3,'User Last name must be at least 3 characters.')
-        .max(20,"User Last name must be less than 20 characters.")
+        .min(3,'User last name must be at least 3 characters.')
+        .max(20,"User last name must be less than 20 characters.")
         .optional(),
     }).strict(),
     params:z.object({
@@ -147,6 +148,6 @@ export type TDeleteUserParams = z.infer<typeof deleteUserSchema>['params']
 export type TUserTokenPayload = {
     _id:string,
     email:string,
-    role:'user'
+    role:UserRoles
 }
 

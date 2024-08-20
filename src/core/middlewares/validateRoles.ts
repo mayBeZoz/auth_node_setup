@@ -1,0 +1,47 @@
+import { verify } from "jsonwebtoken";
+import { findUserById } from "../../features/users/service";
+import { ResponseStatus, UserRoles } from "../utils/constants";
+import controllerHandler from "../utils/controllerHandler";
+import { TUserTokenPayload } from "../../features/users/schema";
+
+export const validateRoles = (roles:UserRoles[]) => controllerHandler(
+    async (req,res,next) => {
+        const token = (req.headers?.authorization as string)?.split(' ')[1]
+        if (!token) {
+            return res.status(401).json({
+                data:null,
+                message:"user is not authorized",
+                error:null,
+                status:ResponseStatus.FAILED
+            })
+        }
+
+        const decoded = verify(token,process.env.ACCESS_TOKEN_JWT_SECRET as string) as TUserTokenPayload
+        req.decodedUser = decoded
+
+        let data = req.decodedUser
+        const isUserRoleMatch = Boolean(roles.find(role => role === data?.role))
+        if (!isUserRoleMatch && !data) {
+            return res.status(403).json({
+                data:null,
+                error:null,
+                status:ResponseStatus.FAILED,
+                message:"you dont have access to this method"
+            })
+        }
+        
+        const user = await findUserById(data?._id as string)
+        
+        if (user && user.role === data?.role) {
+            next()
+        }else {
+            res.status(404).json({
+                data:null,
+                error:null,
+                status:ResponseStatus.FAILED,
+                message:'user not found'
+            })
+        }
+        
+    }
+)

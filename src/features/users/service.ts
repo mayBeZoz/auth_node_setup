@@ -1,3 +1,4 @@
+import { UserRoles } from "../../core/utils/constants";
 import UserModel, { IUser } from "./model";
 
 export const createUser = function (userData:Partial<IUser>) {
@@ -58,3 +59,4 @@ export const updateUserById = function (payload:Partial<IUser>,userId:string) {
 export const deleteUserById = function (userId:string) {
     return UserModel.findByIdAndDelete(userId).select("-password -__v -verifyUserOTP -resetPasswordOTP")
 }
+

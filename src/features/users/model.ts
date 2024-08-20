@@ -1,4 +1,5 @@
 import { Document ,Schema ,model } from "mongoose";
+import { UserRoles } from "../../core/utils/constants";
 
 export interface IUser extends Document {
     firstName:string,
@@ -10,7 +11,7 @@ export interface IUser extends Document {
     verified:boolean,
     setVerifyUserOTPExpiration: (expirationTime: number) => void,
     setResetPasswordOTPExpiration: (expirationTime: number) => void,
-    role:'user'
+    role:UserRoles
 }
 
 const userSchema = new Schema<IUser>({
@@ -44,9 +45,8 @@ const userSchema = new Schema<IUser>({
         default:null,
     },
     role:{
-        default:'user',
+        default:UserRoles.USER,
         type: String,
-        immutable:true
     }
 
 })

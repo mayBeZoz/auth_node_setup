@@ -3,3 +3,9 @@ export enum ResponseStatus {
     ERROR='error',
     FAILED="fail"
 }
+
+export enum UserRoles {
+    ADMIN='admin',
+    USER="user",
+    SUPER_ADMIN='super-admin'
+}

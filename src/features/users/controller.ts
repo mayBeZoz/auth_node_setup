@@ -1,4 +1,4 @@
-import { ResponseStatus } from "../../core/utils/constants";
+import { ResponseStatus, UserRoles } from "../../core/utils/constants";
 import controllerHandler from "../../core/utils/controllerHandler";
 import sendEmail from "../../core/utils/sendEmail";
 import generateOTP from "../../core/utils/generateOTP";
@@ -208,7 +208,7 @@ export default class UserController {
             const tokenPayload : TUserTokenPayload = {
                 _id:user._id,
                 email:user.email,
-                role:'user'
+                role:UserRoles.USER
             }
 
             const refreshToken = sign(tokenPayload,refreshSecret,{
@@ -265,7 +265,7 @@ export default class UserController {
                     const tokenPayload : TUserTokenPayload = {
                         _id:user._id,
                         email:user.email,
-                        role:'user'
+                        role:UserRoles.USER
                     }
 
                     const accessSecret = process.env.ACCESS_TOKEN_JWT_SECRET as string
@@ -428,42 +428,61 @@ export default class UserController {
         async (req,res,next) => {
             const userId = req.params.id
             const body = req.body
-            if (req.user?._id !== userId) {
+            if (req.decodedUser?._id === userId || req.decodedUser?.role === UserRoles.ADMIN || req.decodedUser?.role === UserRoles.SUPER_ADMIN) {
+                const user = findUserById(userId)
+
+                if (!user) {
+                    return res.status(404).json({
+                        data:null,
+                        error:null,
+                        status:ResponseStatus.FAILED,
+                        message:"user with this id is not found"
+                    })
+                }
+
+                const updatedUser = await updateUserById(body,userId)
+
+                return res.status(200).json({
+                    data:updatedUser,
+                    error:null,
+                    status:ResponseStatus.SUCCESS,
+                    message:"user updated successfully"
+                })
+            }
+            else {
                 return res.status(403).json({
                     data:null,
                     error:null,
                     status:ResponseStatus.FAILED,
-                    message:'only account owner can modify account data'
+                    message:"you don't have access to this method"
                 })
             }
-
-            const user = findUserById(userId)
-
-            if (!user) {
-                return res.status(404).json({
-                    data:null,
-                    error:null,
-                    status:ResponseStatus.FAILED,
-                    message:"user is not found"
-                })
-            }
-
-            const updatedUser = await updateUserById(body,userId)
-
-            return res.status(200).json({
-                data:updatedUser,
-                error:null,
-                status:ResponseStatus.SUCCESS,
-                message:"user updated successfully"
-            })
+            
         }
     )
 
     static deleteUserById = controllerHandler<TDeleteUserParams>(
         async (req,res,next) => {
             const id = req.params.id
+            if (req.decodedUser?._id === id || req.decodedUser?.role === UserRoles.ADMIN || req.decodedUser?.role === UserRoles.SUPER_ADMIN) {
+                const deletedUser = await deleteUserById(id)
 
-            if (req.user?._id !== id) {
+                if (Boolean(deletedUser)) {
+                    return res.status(200).json({
+                        data:null,
+                        error:null,
+                        status:ResponseStatus.SUCCESS,
+                        message:"success on deleting user's data"
+                    })
+                }
+
+                return res.status(500).json({
+                    data:null,
+                    error:null,
+                    status:ResponseStatus.FAILED,
+                    message:"error on deleing user's data"
+                })
+            }else {
                 return res.status(403).json({
                     data:null,
                     error:null,
@@ -472,23 +491,7 @@ export default class UserController {
                 })
             }
 
-            const deletedUser = deleteUserById(id)
-
-            if (Boolean(deletedUser)) {
-                return res.status(200).json({
-                    data:null,
-                    error:null,
-                    status:ResponseStatus.SUCCESS,
-                    message:"success on deleting user's data"
-                })
-            }
-
-            return res.status(500).json({
-                data:null,
-                error:null,
-                status:ResponseStatus.FAILED,
-                message:"error on deleing user's data"
-            })
+            
         }
     )
     
