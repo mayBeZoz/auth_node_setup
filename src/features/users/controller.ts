@@ -249,7 +249,7 @@ export default class UserController {
 
     static logout = controllerHandler(
         async (req,res,next) => {
-            res.clearCookie('authToken');
+            res.clearCookie('token');
 
             return res.status(200).json({
                 data:null,
