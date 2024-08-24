@@ -30,7 +30,7 @@ router.get(
     UserController.getAccountVerificationOTP
 )
 
-router.post(
+router.post( 
     '/submit-account-verification-otp/:id',
     validateRequest(submitUserAccountValidationOTP),
     UserController.submitAccountVerificationOTP
@@ -41,6 +41,10 @@ router.get(
     UserController.getResetPasswordOTP
 )
 
+router.get('/logout',
+    UserController.logout
+)
+
 router.post(
     '/submit-reset-password/:id',
     validateRequest(submitUserResetPasswordOTP),
@@ -49,6 +53,7 @@ router.post(
 
 router.get(
     "/",
+    validateRoles([UserRoles.USER,UserRoles.ADMIN,UserRoles.SUPER_ADMIN]),
     validateRequest(getAllUsersSchema),
     UserController.getAllUsers
 )

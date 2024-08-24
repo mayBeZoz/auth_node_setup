@@ -163,6 +163,7 @@ export type TDeleteUserParams = z.infer<typeof deleteUserSchema>['params']
 export type TChangeUserRolePayload = z.infer<typeof changeUserRoleSchema>['body']
 export type TChangeUserRoleParams = z.infer<typeof changeUserRoleSchema>['params']
 
+
 export type TUserTokenPayload = {
     _id:string,
     email:string,

@@ -16,8 +16,17 @@ export const validateRoles = (roles:UserRoles[]) => controllerHandler(
             })
         }
 
-        const decoded = verify(token,process.env.ACCESS_TOKEN_JWT_SECRET as string) as TUserTokenPayload
-        req.decodedUser = decoded
+        try {
+            const decoded = verify(token,process.env.ACCESS_TOKEN_JWT_SECRET as string) as TUserTokenPayload
+            req.decodedUser = decoded
+        }catch (err) {
+            return res.status(401).json({
+                data:null,
+                message:"token expired ,user is not authorized",
+                error:null,
+                status:ResponseStatus.FAILED
+            })
+        }
 
         let data = req.decodedUser
         const isUserRoleMatch = Boolean(roles.find(role => role === data?.role))
@@ -26,7 +35,7 @@ export const validateRoles = (roles:UserRoles[]) => controllerHandler(
                 data:null,
                 error:null,
                 status:ResponseStatus.FAILED,
-                message:"you dont have access to this method"
+                message:"you don't have access to this method"
             })
         }
         

@@ -82,38 +82,47 @@ export default class UserController {
     static getAccountVerificationOTP = controllerHandler(
         async (req,res,next) => {
             const userId = req.params.id
-            
-            const user = await findUserById(userId)
+            try {
+                const user = await findUserById(userId)
 
-            if (!user) {
+                if (!user) {
+                    return res.status(404).json({
+                        error:null,
+                        status:ResponseStatus.FAILED,
+                        data:null,
+                        message:"user not exists"
+                    })
+                }else if (user.verified) {
+                    return res.status(403).json({
+                        error:null,
+                        status:ResponseStatus.FAILED,
+                        data:null,
+                        message:"user is already verified"
+                    })
+                }
+                user.verifyUserOTP = generateOTP()
+                await user.save()
+                const otpExpirationTime = 5 * 60 * 1000; // 5 minutes in milliseconds
+                user.setVerifyUserOTPExpiration(otpExpirationTime);
+                
+                await sendEmail(getAccountVerificationEmailPayload(user))
+    
+                
+                return res.status(200).json({
+                    error:null,
+                    status:ResponseStatus.SUCCESS,
+                    data:null,
+                    message:"activation code is sent to your email"
+                })
+            }catch(err) {
                 return res.status(404).json({
                     error:null,
                     status:ResponseStatus.FAILED,
                     data:null,
                     message:"user not exists"
                 })
-            }else if (user.verified) {
-                return res.status(404).json({
-                    error:null,
-                    status:ResponseStatus.FAILED,
-                    data:null,
-                    message:"user is already verified"
-                })
             }
-            user.verifyUserOTP = generateOTP()
-            await user.save()
-            const otpExpirationTime = 5 * 60 * 1000; // 5 minutes in milliseconds
-            user.setVerifyUserOTPExpiration(otpExpirationTime);
             
-            await sendEmail(getAccountVerificationEmailPayload(user))
-
-            
-            return res.status(404).json({
-                error:null,
-                status:ResponseStatus.SUCCESS,
-                data:null,
-                message:"activation code is sent to your email"
-            })
         }
     )
 
@@ -131,7 +140,7 @@ export default class UserController {
                     message: "User not exists",
                 });
             } else if (user.verified) {
-                return res.status(409).json({
+                return res.status(403).json({
                     error: null,
                     status: ResponseStatus.FAILED,
                     data: null,
@@ -180,7 +189,7 @@ export default class UserController {
             const isPwdValid = await bcrypt.compare(password,user.password)
 
             if (!isPwdValid) {
-                return res.status(401).json({
+                return res.status(404).json({
                     error: null,
                     status: ResponseStatus.FAILED,
                     data: null,
@@ -220,8 +229,9 @@ export default class UserController {
             const accessToken = sign(tokenPayload,accessSecret,{
                 expiresIn:'15m'
             })
-
-            res.cookie('user_token',refreshToken, { httpOnly: true, secure: true })
+            res.cookie('token',refreshToken,{
+                expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+            })
 
             const { _id, firstName, lastName, verified } = user.toObject()
             
@@ -237,10 +247,22 @@ export default class UserController {
         }
     )
 
+    static logout = controllerHandler(
+        async (req,res,next) => {
+            res.clearCookie('authToken');
+
+            return res.status(200).json({
+                data:null,
+                error:null,
+                status:ResponseStatus.SUCCESS,         
+                message:'logged out successfully'
+            })
+        }
+    )
 
     static refreshToken = controllerHandler(
         async (req,res,next) => {
-            const token = req.cookies.user_token
+            const token = req.cookies.token
 
             if (!token) {
                 return res.status(401).json({
@@ -312,7 +334,7 @@ export default class UserController {
                     message:"user not exists"
                 })
             }else if (!user.verified) {
-                return res.status(401).json({
+                return res.status(403).json({
                     error:null,
                     status:ResponseStatus.FAILED,
                     data:null,
@@ -352,7 +374,7 @@ export default class UserController {
                     message: "User not exists",
                 });
             } else if (!user.verified) {
-                return res.status(401).json({
+                return res.status(403).json({
                     error:null,
                     status:ResponseStatus.FAILED,
                     data:null,
