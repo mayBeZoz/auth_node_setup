@@ -1,6 +1,6 @@
 import express from 'express';
 import validateRequest from '../../core/middlewares/validateRequest';
-import { changeUserRoleSchema, createUserSchema, deleteUserSchema, getAllUsersSchema, getUserByIdSchema, submitUserAccountValidationOTP, submitUserResetPasswordOTP, updateUserSchema, userLoginSchema } from './schema';
+import { changeUserRoleSchema, createUserSchema, deleteUserSchema, getAllUsersSchema, getUserByIdSchema, getUserResetPasswordOTP, submitUserAccountValidationOTP, submitUserResetPasswordOTP, updateUserSchema, userLoginSchema } from './schema';
 import UserController from './controller';
 import { validateRoles } from '../../core/middlewares/validateRoles';
 import { UserRoles } from '../../core/utils/constants';
@@ -37,16 +37,18 @@ router.post(
 )
 
 router.get(
-    '/get-reset-password-otp/:id',
+    '/get-reset-password-otp/:email',
+    validateRequest(getUserResetPasswordOTP),
     UserController.getResetPasswordOTP
 )
 
-router.get('/logout',
+router.get(
+    '/logout',
     UserController.logout
 )
 
 router.post(
-    '/submit-reset-password/:id',
+    '/submit-reset-password/:email',
     validateRequest(submitUserResetPasswordOTP),
     UserController.submitResetPasswordOTP
 )

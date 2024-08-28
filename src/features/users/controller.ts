@@ -13,9 +13,10 @@ import {
     TCreateUserPayload, 
     TDeleteUserParams, 
     TGetAllUsersQuery, 
+    TGetResetPasswordParams, 
     TGetUserByIdParams, 
-    TResetPasswordParams, 
-    TResetPasswordPayload, 
+    TSubmitResetPasswordParams, 
+    TSubmitResetPasswordPayload, 
     TUpdateUserParams, 
     TUpdateUserPayload, 
     TUserLoginPayload, 
@@ -189,7 +190,7 @@ export default class UserController {
             const isPwdValid = await bcrypt.compare(password,user.password)
 
             if (!isPwdValid) {
-                return res.status(404).json({
+                return res.status(400).json({
                     error: null,
                     status: ResponseStatus.FAILED,
                     data: null,
@@ -320,11 +321,11 @@ export default class UserController {
         }
     )
 
-    static getResetPasswordOTP = controllerHandler<TResetPasswordParams,{},TResetPasswordPayload>(
+    static getResetPasswordOTP = controllerHandler<TGetResetPasswordParams>(
         async (req,res,next) => {
-            const userId = req.params.id
+            const userEmail = req.params.email
             
-            const user = await findUserById(userId)
+            const user = await findUserByEmail(userEmail)
 
             if (!user) {
                 return res.status(404).json({
@@ -349,7 +350,7 @@ export default class UserController {
             await sendEmail(getResetPasswordEmailPayload(user))
 
             
-            return res.status(404).json({
+            return res.status(200).json({
                 error:null,
                 status:ResponseStatus.SUCCESS,
                 data:null,
@@ -360,12 +361,12 @@ export default class UserController {
     )
 
 
-    static submitResetPasswordOTP = controllerHandler<TResetPasswordParams,{},TResetPasswordPayload>(
+    static submitResetPasswordOTP = controllerHandler<TSubmitResetPasswordParams,{},TSubmitResetPasswordPayload>(
         async (req,res,next) => {
-            const { id: userId } = req.params;
+            const { email:userEmail } = req.params;
             const { resetPasswordOTP,newPassword } = req.body;
 
-            const user = await findUserById(userId);
+            const user = await findUserByEmail(userEmail);
             if (!user) {
                 return res.status(404).json({
                     error: null,
@@ -383,7 +384,7 @@ export default class UserController {
             }
 
             if (user.resetPasswordOTP !== resetPasswordOTP) {
-                return res.status(400).json({
+                return res.status(409).json({
                     error: null,
                     status: ResponseStatus.FAILED,
                     data: null,

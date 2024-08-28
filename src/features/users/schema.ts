@@ -66,11 +66,19 @@ export const submitUserResetPasswordOTP = z.object({
         })
     }).strict(),
     params:z.object({
-        id:z.string({
-            required_error:"user id is required"
+        email:z.string({
+            required_error:"user email is required"
         })
     }),
 
+})
+
+export const getUserResetPasswordOTP = z.object({
+    params:z.object({
+        email:z.string({
+            required_error:"user email is required"
+        })
+    })
 })
 
 export const userLoginSchema = z.object({
@@ -146,8 +154,8 @@ export type TCreateUserPayload = z.infer<typeof createUserSchema>['body']
 export type TAccountVerificationPayload = z.infer<typeof submitUserAccountValidationOTP>['body']
 export type TAccountVerificationParams = z.infer<typeof submitUserAccountValidationOTP>['params']
 
-export type TResetPasswordPayload = z.infer<typeof submitUserResetPasswordOTP>['body']
-export type TResetPasswordParams = z.infer<typeof submitUserResetPasswordOTP>['params']
+export type TSubmitResetPasswordPayload = z.infer<typeof submitUserResetPasswordOTP>['body']
+export type TSubmitResetPasswordParams = z.infer<typeof submitUserResetPasswordOTP>['params']
 
 export type TUserLoginPayload = z.infer<typeof userLoginSchema>['body']
 
@@ -163,6 +171,7 @@ export type TDeleteUserParams = z.infer<typeof deleteUserSchema>['params']
 export type TChangeUserRolePayload = z.infer<typeof changeUserRoleSchema>['body']
 export type TChangeUserRoleParams = z.infer<typeof changeUserRoleSchema>['params']
 
+export type TGetResetPasswordParams = z.infer<typeof getUserResetPasswordOTP>['params']
 
 export type TUserTokenPayload = {
     _id:string,
