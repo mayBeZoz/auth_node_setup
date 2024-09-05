@@ -454,7 +454,7 @@ export default class UserController {
             const userId = req.params.id
             const body = req.body
             if (req.decodedUser?._id === userId || req.decodedUser?.role === UserRoles.ADMIN || req.decodedUser?.role === UserRoles.SUPER_ADMIN) {
-                const user = findUserById(userId)
+                const user = await findUserById(userId)
 
                 if (!user) {
                     return res.status(404).json({
